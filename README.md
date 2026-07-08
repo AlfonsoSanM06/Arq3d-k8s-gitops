@@ -163,8 +163,8 @@ TFG-asir/
 
 El directorio `terraform-proxmox/` gestiona el ciclo de vida de las 4 VMs mediante el módulo reutilizable `modules/vm`.
 
-### VMs aprovisionadas
-
+### VMs aprovisionadas - Recomendado
+u
 | VM | VMID | IP | vCPU | RAM | Disco | Rol |
 |---|---|---|---|---|---|---|
 | `k8s-master-01` | 110 | 192.168.10.10 | 2 | 4 GiB | 40 GiB | K8s Control Plane |
