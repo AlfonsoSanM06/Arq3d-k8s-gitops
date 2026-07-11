@@ -1,6 +1,4 @@
-# =============================================================================
-# values.yaml — Chart Principal WordPress-MySQL
-# =============================================================================
+
 # Valores globales heredados por todos los subcharts (via .Values.global)
 global:
   imageRegistry: ""

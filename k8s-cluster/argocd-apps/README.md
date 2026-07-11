@@ -47,7 +47,7 @@ debe haber desplegado:
 | Ingress NGINX `4.10.x` | `ingress-nginx` | Terminador HTTP/Ingress |
 | Sealed Secrets `2.16.x` | `kube-system` | Descifrado de SealedSecrets |
 
-## Bootstrapping (primera vez)
+## Bootstrapping
 
 ```bash
 # 1. Desplegar la infraestructura base (ArgoCD + NGINX + SealedSecrets)
@@ -63,19 +63,17 @@ kubectl create secret generic wordpress-mysql-secrets \
 
 # 3. Registrar la root-app en ArgoCD (solo la primera vez)
 kubectl apply -f argocd-apps/01-root-app.yaml
-
-# A partir de aquí, todo es GitOps automático.
 ```
 
 ## Acceso a la UI de ArgoCD
 
 ```bash
 # Añadir entrada DNS local
-echo "$(minikube ip)  argo.alfonso.local" | sudo tee -a /etc/hosts
+echo "$(minikube ip)  argo.local" | sudo tee -a /etc/hosts
 
 # Obtener contraseña inicial del admin
 kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d; echo
 
-# Navegar a http://argo.alfonso.local
+# Navegar a http://argo.local
 ```

@@ -1,15 +1,14 @@
-# --- Paso A: instalar K3s server en el master ---
+
 - name: "FASE 3a | K3s — Instalar nodo Master"
   hosts: k8s_masters
   gather_facts: true
   become: true
-  serial: 1       # Un master a la vez (preparado para HA futuro con 3 masters)
+  serial: 1
  
   roles:
     - role: k3s
       tags: [k3s, master]
  
-# --- Paso B: distribuir el token y unir workers ---
 - name: "FASE 3b | K3s — Unir Workers al clúster"
   hosts: k8s_workers
   gather_facts: true

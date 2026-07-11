@@ -1,36 +1,12 @@
 ---
-# =============================================================================
-# SITE.YML — Playbook principal (Orquestador)
-# Ejecuta en orden todos los playbooks de ARQ3D-INFRASTRUCTURE.
-# =============================================================================
-
-# 1. Hardening (configuración base + SSH + firewall)
+# 1. Hardening
 - import_playbook: playbooks/01-hardening.yml
 
-# 2. NFS (montaje de datos compartidos)
+# 2. NFS
 - import_playbook: playbooks/02-nfs.yml
 
-# 3. K3s (instalación del clúster Master y unión de Workers)
+# 3. K3s
 - import_playbook: playbooks/03-k3s.yml
 
-# 4. LDAP (servidor de identidad único)
+# 4. LDAP
 - import_playbook: playbooks/04-ldap.yml
-
-# =============================================================================
-# Notas de ejecución para la Defensa del TFG:
-# 
-# Ejecución completa:
-#   ansible-playbook site.yml --vault-password-file ~/.vault_pass
-# o bien:
-#   ansible-playbook site.yml --ask-vault-pass
-#
-# Ejecución por partes (Tags definidos en los roles):
-#   ansible-playbook site.yml -t hardening          # Solo hardening
-#   ansible-playbook site.yml -t nfs                # Solo NFS
-#   ansible-playbook site.yml -t k3s                # Solo K3s
-#   ansible-playbook site.yml -t ldap               # Solo LDAP
-#
-# Reintentos:
-#   Las variables de control-flow del clúster (k3s/tasks/wait-for-ready.yml)
-#   ya incluyen reintentos y timeouts razonables.
-# =============================================================================
