@@ -27,14 +27,11 @@ spec:
     path: k8s-cluster/wordpress/wordpress-mysql
 
     helm:
-      # values.yaml se carga por defecto; values-secrets.yaml NO va a Git.
-      # Las credenciales se inyectan via SealedSecret (fichero separado).
       valueFiles:
         - values.yaml
-      # Sobreescritura de valores específicos del entorno sin tocar el chart
       parameters:
         - name: "global.storageClass"
-          value: "standard"    # Minikube. En prod: "nfs-client" del TrueNAS
+          value: "standard"
         - name: "global.environment"
           value: "prod"
 
@@ -56,9 +53,7 @@ spec:
         factor: 2
         maxDuration: 3m
 
-  # Condiciones de salud personalizadas
   ignoreDifferences:
-    # ArgoCD ignora anotaciones que el propio K8s muta (ej. last-applied)
     - group: apps
       kind: Deployment
       jsonPointers:

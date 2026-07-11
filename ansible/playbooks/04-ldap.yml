@@ -1,14 +1,4 @@
 ---
-# =============================================================================
-# 04-ldap.yml — Instalación y configuración de OpenLDAP en ldap-server
-#
-# Requiere variables sensibles en group_vars/all/vault.yml:
-#   ldap_admin_password: "..."
-#   ldap_bind_password:  "..."
-#
-# Ejecución:
-#   ansible-playbook playbooks/04-ldap.yml --ask-vault-pass
-# =============================================================================
 - name: "FASE 4 | OpenLDAP — Servidor de identidad ARQ3D"
   hosts: ldap_servers
   gather_facts: true

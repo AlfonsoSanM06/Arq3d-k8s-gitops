@@ -10,13 +10,8 @@
 #     tag: "v2.13.5"
 
 server:
-  # Modo insecure: ArgoCD sirve HTTP en el puerto 80.
-  # El Ingress NGINX actúa como terminador y hace el proxy.
-  # NUNCA usar --insecure en producción real con tráfico externo.
   extraArgs:
     - --insecure
-
-  # Recursos del servidor ArgoCD (ajustados para entorno de lab/TFG)
   resources:
     requests:
       cpu: 100m
@@ -25,11 +20,10 @@ server:
       cpu: 500m
       memory: 512Mi
 
-  # Métricas para Prometheus/Grafana (ya tienes Grafana en la arquitectura)
   metrics:
     enabled: true
     serviceMonitor:
-      enabled: false   # Activar cuando Prometheus esté desplegado en el clúster
+      enabled: false
 
 repoServer:
   resources:

@@ -1,10 +1,4 @@
 ---
-# =============================================================================
-# group_vars/all.yml
-# Variables globales compartidas por todos los hosts.
-# Valores sensibles (contraseñas, tokens) van en group_vars/all/vault.yml
-# cifrado con ansible-vault.
-# =============================================================================
 
 # Sistema base
 system_locale: "es_ES.UTF-8"
@@ -26,9 +20,9 @@ firewall_allowed_tcp_ports:
   - "{{ ssh_port }}"
 
 # NFS — TrueNAS (VLAN 20)
-truenas_server_ip: "192.168.20.100"          # IP del TrueNAS en VLAN 20.
-nfs_mount_point: "/mnt/nfs/arq3d-data"       # Ruta local en cada VM.
-nfs_export_path: "/mnt/pool/arq3d-data"      # Export del TrueNAS.
+truenas_server_ip: "192.168.20.100"          
+nfs_mount_point: "/mnt/nfs/arq3d-data"       
+nfs_export_path: "/mnt/pool/arq3d-data"     
 nfs_options: "rw,sync,hard,intr,rsize=131072,wsize=131072,timeo=14"
 nfs_owner: arq3d
 nfs_group: arq3d
@@ -38,9 +32,9 @@ nfs_group: arq3d
 k3s_version: "v1.29.4+k3s1"
 k3s_master_ip: "192.168.10.10"
 k3s_api_port: 6443
-k3s_flannel_backend: "vxlan"               # Compatible con la mayoría de switches.
-k3s_cluster_cidr: "10.42.0.0/16"           # Red interna de Pods.
-k3s_service_cidr: "10.43.0.0/16"           # Red interna de Services.
+k3s_flannel_backend: "vxlan"             
+k3s_cluster_cidr: "10.42.0.0/16"           
+k3s_service_cidr: "10.43.0.0/16"           
 
 # Directorio de configuración de K3s en los nodos
 k3s_config_dir: "/etc/rancher/k3s"

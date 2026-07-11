@@ -49,6 +49,8 @@ Este repositorio contiene la **infraestructura** del proyecto ARQ3D. El objetivo
 
 ![flow1](./assets/proxmoxflow1.png)
 
+
+
 ![flow2](./assets/proxmoxflow2.png)
 
 ### Orden de despliegue (capas)
@@ -161,8 +163,8 @@ TFG-asir/
 
 El directorio `terraform-proxmox/` gestiona el ciclo de vida de las 4 VMs mediante el módulo reutilizable `modules/vm`.
 
-### VMs aprovisionadas
-
+### VMs aprovisionadas - Recomendado
+u
 | VM | VMID | IP | vCPU | RAM | Disco | Rol |
 |---|---|---|---|---|---|---|
 | `k8s-master-01` | 110 | 192.168.10.10 | 2 | 4 GiB | 40 GiB | K8s Control Plane |
@@ -187,24 +189,7 @@ terraform plan
 
 # 4. Aprovisionar las VMs
 terraform apply
-
-# 5. Exportar IPs para Ansible
-terraform output -json > ../ansible/inventory_vars.json
 ```
-
-### Módulo `vm` — parámetros clave
-
-| Variable | Tipo | Descripción |
-|---|---|---|
-| `vm_id` | `number` | VMID único en Proxmox |
-| `vm_name` | `string` | Nombre de la VM |
-| `proxmox_node` | `string` | Nodo Proxmox destino |
-| `template_name` | `string` | Plantilla Cloud-Init base |
-| `cpu_cores` | `number` | Núcleos virtuales |
-| `ram_mb` | `number` | Memoria en MiB |
-| `disk_size_gb` | `number` | Tamaño del disco OS |
-| `ip_address` | `string` | IP estática (VLAN 10) |
-| `ci_ssh_key` | `string` | Clave pública SSH (sensitive) |
 
 > **Outputs exportados:** `vm_id`, `vm_name`, `ip` — disponibles con `terraform output`.
 
@@ -228,10 +213,10 @@ El directorio `ansible/` configura todos los nodos una vez que Terraform los ha 
 ```bash
 cd ansible/
 
-# Ejecución completa (recomendado para un despliegue limpio)
+# Ejecución completa
 ansible-playbook site.yml --vault-password-file ~/.vault_pass
 
-# Ejecución por capas (con tags)
+# Ejecución por capas
 ansible-playbook site.yml -t hardening
 ansible-playbook site.yml -t nfs
 ansible-playbook site.yml -t k3s
@@ -241,17 +226,16 @@ ansible-playbook site.yml -t ldap
 ansible all -m ping
 ```
 
-### Secretos con Ansible Vault
+### Ansible Vault
 
-El fichero `group_vars/vault.yml` contiene variables sensibles cifradas. **Nunca se commitea en texto plano.**
+El fichero `group_vars/vault.yml` contiene variables sensibles cifradas.
 
 ```bash
+# Encriptamos el vault.yml una vez creado
+ansible-vault encrypt group_vars/all/vault.yml
+
 # Crear/editar secretos
 ansible-vault edit group_vars/vault.yml
-
-# Crear el fichero de contraseña (fuera del repo)
-echo "mi-passphrase-segura" > ~/.vault_pass
-chmod 600 ~/.vault_pass
 ```
 
 ---
@@ -290,7 +274,7 @@ terraform apply
 
 ---
 
-## 8. Capa 4 — ArgoCD: GitOps y despliegue de aplicaciones
+## 8. Capa 4 — ArgoCD: Despliegue de aplicaciones
 
 ArgoCD implementa una Application raíz (`root-app`) monitoriza el directorio `k8s-cluster/argocd-apps/`. Cualquier fichero `.yaml` añadido en ese directorio se convierte automáticamente en un recurso desplegado en el clúster.
 
@@ -301,16 +285,18 @@ git push (rama main)
     │
     └─► GitHub
            │
-           └─► ArgoCD (polling cada 3 min o webhook inmediato)
+           └─► ArgoCD 
                   │
                   └─► root-app sincroniza argocd-apps/
                          │
                          ├─► 00-appproject.yaml   → AppProject: permisos
+                         ├─► 01-root-app.yaml   → Application: raíz
                          ├─► 02-wordpress-app.yaml → Application: WordPress
                          └─► 03-sealed-secret.yaml → SealedSecret: MySQL creds
+
 ```
 
-### Bootstrapping (primera vez)
+### Bootstrapping
 
 ```bash
 # 1. Sellar el Secret de MySQL con la clave pública del clúster
@@ -320,15 +306,13 @@ kubectl create secret generic wordpress-mysql-secrets \
   --namespace wp --dry-run=client -o yaml | \
   kubeseal --format yaml > k8s-cluster/argocd-apps/03-sealed-secret.yaml
 
-# 2. Commitear el SealedSecret (es seguro — está cifrado con la clave del clúster)
+# 2. Commitear el SealedSecret
 git add k8s-cluster/argocd-apps/03-sealed-secret.yaml
 git commit -m "feat: add sealed mysql secret"
 git push
 
-# 3. Registrar la root-app (solo la primera vez)
+# 3. Registrar la root-app (solo primera vez)
 kubectl apply -f k8s-cluster/argocd-apps/01-root-app.yaml
-
-# A partir de aquí, todo es GitOps automático.
 ```
 
 ### Añadir una nueva aplicación
@@ -376,25 +360,10 @@ Las passwords de MySQL **no están en `values.yaml`**. Se inyectan desde el Seal
 
 ---
 
-## 10. Seguridad
-
-### Reglas fundamentales
-
-| Práctica | Implementación |
-|---|---|
-| **Secretos nunca en Git** | `terraform.tfvars` en `.gitignore`; secretos K8s via SealedSecrets |
-| **Credenciales Terraform** | Variables de entorno `TF_VAR_*` o `terraform.tfvars` (excluido de Git) |
-| **Credenciales Ansible** | `ansible-vault` cifra `group_vars/vault.yml` |
-| **Secretos Kubernetes** | `kubeseal` cifra con clave RSA del clúster — seguros en Git |
-| **SSH** | Solo clave ED25519; acceso root deshabilitado (rol `hardening`) |
-| **Firewall** | UFW activo en todos los nodos (rol `hardening`) |
-| **Fail2ban** | Activo en todos los nodos contra brute-force SSH |
-| **TLS Proxmox** | `proxmox_tls_insecure = false` en producción |
-
 ### Variables de entorno para CI/CD
 
 ```bash
-# En lugar de escribir credenciales en ficheros, exportar como env vars:
+# Exportar como env vars:
 export TF_VAR_proxmox_api_token_secret="tu-secret-aqui"
 export TF_VAR_ci_ssh_public_key="$(cat ~/.ssh/id_ed25519.pub)"
 ```
@@ -528,25 +497,6 @@ kubectl get secret wordpress-mysql-secrets -n wp -o jsonpath='{.data}' | base64 
 
 ---
 
-## 13. Glosario
-
-| Término | Definición |
-|---|---|
-| **IaC** | Infrastructure as Code — infraestructura definida en ficheros versionados |
-| **Cloud-Init** | Estándar para configuración inicial de VMs en el primer arranque |
-| **GitOps** | Modelo operativo donde Git es la única fuente de verdad del estado del clúster |
-| **App-of-Apps** | Patrón ArgoCD donde una Application raíz gestiona el resto de Applications |
-| **SealedSecret** | CRD que permite almacenar Secrets cifrados en Git de forma segura |
-| **Helm Chart** | Paquete de manifiestos Kubernetes con valores parametrizables |
-| **K3s** | Distribución ligera de Kubernetes optimizada para entornos edge/lab |
-| **VLAN** | Red virtual que segmenta el tráfico a nivel de capa 2 |
-| **NFS** | Network File System — protocolo para compartir almacenamiento en red |
-| **LDAP** | Lightweight Directory Access Protocol — directorio de identidades centralizado |
-| **PVC** | PersistentVolumeClaim — solicitud de almacenamiento persistente en K8s |
-| **Ingress** | Recurso K8s que enruta tráfico HTTP/HTTPS externo a servicios internos |
-
----
-
-> **Autor:** Alfonso Sánchez — TFG ASIR  
-> **Repositorio:** https://github.com/AlfonsoSanM06/TFG-asir  
+> **Autor:** Alfonso Sánchez — Arq3d-k8s-gitops
+> **Repositorio:** https://github.com/AlfonsoSanM06/Arq3d-k8s-gitops
 > **Licencia:** MIT

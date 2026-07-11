@@ -1,10 +1,4 @@
 ---
-# =============================================================================
-# INVENTORY — arq3d-infrastructure
-# IPs estáticas generadas por Terraform (VLAN 10: 10.10.10.0/24).
-# Actualiza este fichero con: terraform output -json | python3 scripts/gen_inventory.py
-# =============================================================================
-
 all:
   vars:
     ansible_user: arq3d                        # Usuario Cloud-Init creado por Terraform.
@@ -17,9 +11,7 @@ all:
 
   children:
 
-    # -------------------------------------------------------------------------
     # Nodos del clúster Kubernetes (master + workers)
-    # -------------------------------------------------------------------------
     k8s_cluster:
       children:
 
@@ -38,18 +30,13 @@ all:
               ansible_host: 10.10.10.13
               k3s_role: worker
 
-    # -------------------------------------------------------------------------
     # Servidor LDAP — independiente del clúster K8s
-    # -------------------------------------------------------------------------
     identity_servers:
       hosts:
         ldap-server:
           ansible_host: 10.10.10.20
 
-    # -------------------------------------------------------------------------
     # Grupo virtual: todos los nodos gestionados por Ansible
-    # (útil para playbooks de hardening y NFS transversales)
-    # -------------------------------------------------------------------------
     managed:
       children:
         k8s_cluster:
