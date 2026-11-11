@@ -1,0 +1,15 @@
+---
+ssh_port: 22
+ssh_permit_root_login: "no"
+ssh_password_auth: "no"
+ssh_max_auth_tries: 3
+ssh_login_grace_time: 30
+ssh_client_alive_interval: 300
+ssh_client_alive_count_max: 2
+ssh_allowed_users: []
+firewall_allowed_tcp_ports: []
+firewall_allowed_udp_ports: []
+firewall_allowed_source: "0.0.0.0/0"
+fail2ban_bantime: 3600
+fail2ban_findtime: 600
+fail2ban_maxretry: 5

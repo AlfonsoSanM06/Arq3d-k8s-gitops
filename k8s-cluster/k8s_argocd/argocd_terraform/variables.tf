@@ -1,4 +1,4 @@
 variable "namespace" {
-    type = string
-    default = "argocd"
+  type    = string
+  default = "argocd"
 }

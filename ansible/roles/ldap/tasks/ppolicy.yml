@@ -1,0 +1,40 @@
+---
+- name: "LDAP PPOLICY | Desplegar LDIF del modulo"
+  ansible.builtin.template:
+    src: ppolicy.ldif.j2
+    dest: /tmp/ppolicy_module.ldif
+    owner: root
+    mode: "0600"
+
+- name: "LDAP PPOLICY | Cargar modulo ppolicy"
+  ansible.builtin.command: ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/ppolicy_module.ldif
+  register: ppolicy_module
+  changed_when: ppolicy_module.rc == 0
+  failed_when: ppolicy_module.rc != 0 and 'Type or value exists' not in ppolicy_module.stderr
+  no_log: true
+
+- name: "LDAP PPOLICY | Crear politica por defecto"
+  community.general.ldap_entry:
+    dn: "cn=default,ou=servicios,{{ ldap_base_dn }}"
+    objectClass: [pwdPolicy, person, top]
+    attributes:
+      cn: default
+      sn: PasswordPolicy
+      pwdAttribute: userPassword
+      pwdMinLength: "{{ ldap_ppolicy_min_length }}"
+      pwdMaxFailure: "{{ ldap_ppolicy_max_failure }}"
+      pwdLockout: "TRUE"
+      pwdLockoutDuration: "{{ ldap_ppolicy_lockout_duration }}"
+      pwdMustChange: "FALSE"
+      pwdAllowUserChange: "TRUE"
+      pwdExpireWarning: "604800"
+    server_uri: "{{ ldap_server_uri }}"
+    bind_dn: "cn=admin,{{ ldap_base_dn }}"
+    bind_pw: "{{ ldap_admin_password }}"
+    state: present
+  no_log: true
+
+- name: "LDAP PPOLICY | Eliminar LDIF temporal"
+  ansible.builtin.file:
+    path: /tmp/ppolicy_module.ldif
+    state: absent

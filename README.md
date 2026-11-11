@@ -14,7 +14,7 @@
 5. [Capa 1 — Terraform: aprovisionamiento de VMs](#5-capa-1--terraform-aprovisionamiento-de-vms)
 6. [Capa 2 — Ansible: configuración base del SO](#6-capa-2--ansible-configuración-base-del-so)
 7. [Capa 3 — K3s: clúster Kubernetes](#7-capa-3--k3s-clúster-kubernetes)
-8. [Capa 4 — ArgoCD: GitOps y despliegue de aplicaciones](#8-capa-4--argocd-gitops-y-despliegue-de-aplicaciones)
+8. [Capa 4 — ArgoCD: Despliegue de aplicaciones](#8-capa-4--argocd-despliegue-de-aplicaciones)
 9. [Aplicaciones desplegadas](#9-aplicaciones-desplegadas)
 10. [Seguridad](#10-seguridad)
 11. [Guía de despliegue completo](#11-guía-de-despliegue-completo)
@@ -32,11 +32,11 @@ Este repositorio contiene la **infraestructura** del proyecto ARQ3D. El objetivo
 | Capa | Tecnología | Propósito |
 |---|---|---|
 | Virtualización | Proxmox VE | Hipervisor bare-metal |
-| IaC — VMs | Terraform + `telmate/proxmox` | Aprovisionamiento declarativo de VMs |
+| IaC — VMs | Terraform + `bpg/proxmox` | Aprovisionamiento declarativo de VMs |
 | IaC — K8s | Terraform + Helm provider | Despliegue de controladores en K8s |
 | Configuración OS | Ansible + roles | Hardening, NFS, K3s, LDAP |
 | Clúster K8s | K3s (lightweight Kubernetes) | Runtime de contenedores |
-| GitOps | ArgoCD v2 (App-of-Apps) | Despliegue continuo desde Git |
+| Despliegue de aplicaciones | ArgoCD v2 | Despliegue continuo desde Git |
 | Ingress | NGINX Ingress Controller | Enrutamiento HTTP/HTTPS |
 | Secretos | Sealed Secrets | Cifrado de secretos en Git |
 | Identidad | OpenLDAP | Autenticación centralizada |
@@ -70,7 +70,7 @@ Este repositorio contiene la **infraestructura** del proyecto ARQ3D. El objetivo
 
 | Herramienta | Versión mínima | Instalación |
 |---|---|---|
-| Terraform | `>= 1.7.0` | https://developer.hashicorp.com/terraform/install |
+| Terraform | `>= 1.11.0` | https://developer.hashicorp.com/terraform/install |
 | Ansible | `>= 2.15` | `pip install ansible` |
 | kubectl | `>= 1.28` | https://kubernetes.io/docs/tasks/tools/ |
 | Helm | `>= 3.12` | https://helm.sh/docs/intro/install/ |
@@ -78,7 +78,7 @@ Este repositorio contiene la **infraestructura** del proyecto ARQ3D. El objetivo
 
 ### Infraestructura necesaria
 
-- **Proxmox VE** accesible en red con token de API configurado.
+- **Proxmox VE** accesible en red con un API token dedicado de mínimo privilegio.
 - **Plantilla Cloud-Init** `ubuntu-2204-cloud-init` creada en Proxmox.
 - **TrueNAS** con exports NFS configurados (para PVCs).
 - **Par de claves SSH** ED25519 .
@@ -89,7 +89,7 @@ Este repositorio contiene la **infraestructura** del proyecto ARQ3D. El objetivo
 # En el shell de Proxmox o via UI:
 pveum user add terraform@pam
 pveum aclmod / -user terraform@pam -role PVEVMAdmin
-pveum user token add terraform@pam tfg-token --privsep=0
+pveum user token add terraform@pam tfg-token --privsep=1
 # Guarda el UUID del secret que aparece — no se muestra dos veces.
 ```
 
@@ -167,21 +167,21 @@ El directorio `terraform-proxmox/` gestiona el ciclo de vida de las 4 VMs median
 u
 | VM | VMID | IP | vCPU | RAM | Disco | Rol |
 |---|---|---|---|---|---|---|
-| `k8s-master-01` | 110 | 192.168.10.10 | 2 | 4 GiB | 40 GiB | K8s Control Plane |
-| `k8s-worker-01` | 111 | 192.168.10.11 | 4 | 8 GiB | 40 GiB | K8s Worker (Web + ArgoCD) |
-| `k8s-worker-02` | 112 | 192.168.10.12 | 4 | 8 GiB | 40 GiB | K8s Worker (Nextcloud HA) |
-| `ldap-server`   | 120 | 192.168.10.20 | 2 | 4 GiB | 30 GiB | OpenLDAP Identity |
+| `k8s-master-01` | 110 | 10.10.10.11 | 2 | 2 GiB | 15 GiB | K8s Control Plane |
+| `k8s-worker-01` | 111 | 10.10.10.12 | 4 | 2 GiB | 15 GiB | K8s Worker (Web + ArgoCD) |
+| `k8s-worker-02` | 112 | 10.10.10.13 | 4 | 2 GiB | 15 GiB | K8s Worker (Nextcloud HA) |
+| `ldap-server`   | 120 | 10.10.10.20 | 2 | 1 GiB | 10 GiB | OpenLDAP Identity |
 
 ### Despliegue
 
 ```bash
 cd terraform-proxmox/
 
-# 1. Copiar y rellenar variables
+# 1. Copiar y rellenar variables. Este fichero es local y está en .gitignore.
 cp terraform.tfvars.example terraform.tfvars
 # Editar terraform.tfvars con: URL de Proxmox, token, IPs, clave SSH pública
 
-# 2. Inicializar providers
+# 2. Inicializar providers y el backend remoto
 terraform init
 
 # 3. Revisar el plan (NO aplica cambios)
@@ -228,11 +228,12 @@ ansible all -m ping
 
 ### Ansible Vault
 
-El fichero `group_vars/vault.yml` contiene variables sensibles cifradas.
+El fichero `group_vars/vault.yml` contiene variables sensibles y debe estar cifrado
+con Ansible Vault. El fichero local `.vault_pass` nunca se versiona.
 
 ```bash
 # Encriptamos el vault.yml una vez creado
-ansible-vault encrypt group_vars/all/vault.yml
+ansible-vault encrypt group_vars/vault.yml
 
 # Crear/editar secretos
 ansible-vault edit group_vars/vault.yml
@@ -248,7 +249,7 @@ K3s es instalado por Ansible (`roles/k3s`). Una vez levantado el clúster, se in
 
 ```bash
 # Copiar kubeconfig desde el master
-scp arq3d@192.168.10.10:/etc/rancher/k3s/k3s.yaml ~/.kube/config-arq3d
+scp arq3d@10.10.10.11:/etc/rancher/k3s/k3s.yaml ~/.kube/config-arq3d
 
 # Apuntar kubectl al nuevo clúster
 export KUBECONFIG=~/.kube/config-arq3d
@@ -276,7 +277,7 @@ terraform apply
 
 ## 8. Capa 4 — ArgoCD: Despliegue de aplicaciones
 
-ArgoCD implementa una Application raíz (`root-app`) monitoriza el directorio `k8s-cluster/argocd-apps/`. Cualquier fichero `.yaml` añadido en ese directorio se convierte automáticamente en un recurso desplegado en el clúster.
+ArgoCD implementa una Application raíz (`root-app`) que monitoriza el directorio `k8s-cluster/argocd-apps/`. Cualquier fichero `.yaml` añadido en ese directorio se convierte automáticamente en un recurso desplegado en el clúster. GitHub Actions hace CI (lint y validaciones); ArgoCD hace CD y es el único componente que sincroniza aplicaciones con Kubernetes.
 
 ### Flujo
 
@@ -299,7 +300,9 @@ git push (rama main)
 ### Bootstrapping
 
 ```bash
-# 1. Sellar el Secret de MySQL con la clave pública del clúster
+# 1. Sellar el Secret de MySQL con la clave pública del clúster.
+# El SealedSecret cifrado sí se versiona; el Secret sin cifrar y la clave
+# privada del controlador nunca se versionan.
 kubectl create secret generic wordpress-mysql-secrets \
   --from-literal=password='<MYSQL_PASSWORD>' \
   --from-literal=root-password='<MYSQL_ROOT_PASSWORD>' \
@@ -326,7 +329,7 @@ kubectl apply -f k8s-cluster/argocd-apps/01-root-app.yaml
 
 ```bash
 # Añadir entrada DNS local
-echo "192.168.10.11  argo.alfonso.local" | sudo tee -a /etc/hosts
+echo "10.10.10.12  argo.alfonso.local" | sudo tee -a /etc/hosts
 
 # Obtener contraseña inicial del admin
 kubectl -n argocd get secret argocd-initial-admin-secret \
@@ -347,26 +350,44 @@ Helm chart custom ubicado en `k8s-cluster/wordpress/wordpress-mysql/`.
 | Parámetro | Valor |
 |---|---|
 | Namespace | `wp` |
-| Réplicas WordPress | 3 |
+| Réplicas WordPress | 3 (requiere NFS RWX) |
 | Imagen WordPress | `wordpress:6.2.1-apache` |
 | Imagen MySQL | `mysql:8.0` |
 | Ingress host | `alfonso.local` |
 | Ingress class | `nginx` |
-| Storage class | `nfs-client` (TrueNAS) |
-| Métricas | `mysqld-exporter:v0.15.0` vía ServiceMonitor |
+| Storage class | `nfs-client` (TrueNAS, RWX para WordPress) |
+| Métricas | ServiceMonitor opcional; se activará al instalar Prometheus Operator |
 | Secretos | SealedSecret `wordpress-mysql-secrets` |
 
 Las passwords de MySQL **no están en `values.yaml`**. Se inyectan desde el SealedSecret que ArgoCD despliega desde `argocd-apps/03-sealed-secret.yaml`.
 
+La aplicación requiere los secretos TLS `wordpress-tls` y `argocd-server-tls`.
+En laboratorio pueden crearse con una CA interna; en producción deben gestionarse
+con certificados válidos, preferiblemente mediante cert-manager.
+
+### Monitorización futura
+
+Prometheus, Grafana y Alertmanager pueden desplegarse dentro del clúster mediante
+el chart `kube-prometheus-stack`, gestionado por ArgoCD. Sus datos deben usar PVCs
+dedicados y la configuración debe estar en Git. Para producción no conviene que
+el clúster sea la única copia de sus métricas: hay que respaldar Grafana/Alertmanager
+y usar almacenamiento externo o remote-write para métricas de largo plazo.
+
 ---
 
-### Variables de entorno para CI/CD
+### Variables de entorno para Terraform
 
 ```bash
-# Exportar como env vars:
+export TF_VAR_proxmox_api_token_id="terraform@pam!tfg-token"
 export TF_VAR_proxmox_api_token_secret="tu-secret-aqui"
 export TF_VAR_ci_ssh_public_key="$(cat ~/.ssh/id_ed25519.pub)"
 ```
+
+El backend S3 guarda el estado fuera del repositorio y usa locking. En AWS se
+usan `AWS_ACCESS_KEY_ID` y `AWS_SECRET_ACCESS_KEY`. En MinIO, `endpoint` es la
+URL del servicio S3 compatible, por ejemplo `https://minio.example.local`;
+se proporciona durante `terraform init` con `-backend-config` y nunca se
+incluyen credenciales en Git.
 
 ---
 
@@ -394,7 +415,7 @@ ansible all -m ping
 # Ejecutar todos los playbooks
 ansible-playbook site.yml --vault-password-file ~/.vault_pass
 # Verificar K3s
-ssh arq3d@192.168.10.10 "kubectl get nodes"
+ssh arq3d@10.10.10.11 "kubectl get nodes"
 
 # ─────────────────────────────────────────────
 # PASO 3 — Instalar controladores K8s
@@ -403,7 +424,8 @@ cd ../k8s-cluster/k8s_argocd/argocd_terraform/
 export KUBECONFIG=~/.kube/config-arq3d
 export AWS_ACCESS_KEY_ID="TU_CLAVE_AQUI"
 export AWS_SECRET_ACCESS_KEY="TU_CLAVE_SECRETA_AQUI"
-#para poder tener el backend configurado 
+# En AWS S3 estas variables bastan. Para MinIO, configura además su endpoint
+# mediante -backend-config, sin guardar credenciales en Git.
 terraform init
 terraform apply
 # Verificar pods
@@ -436,7 +458,7 @@ kubectl get applications -n argocd
 kubectl get pods -n wp
 kubectl get ingress -n wp
 # Añadir DNS local y abrir http://alfonso.local
-echo "192.168.10.11  alfonso.local" | sudo tee -a /etc/hosts
+echo "10.10.10.12  alfonso.local" | sudo tee -a /etc/hosts
 ```
 
 ---
@@ -460,7 +482,7 @@ curl -sk https://192.168.1.X:8006/api2/json/version
 ansible all -m ping --timeout=30
 
 # Forzar aceptar fingerprint nuevo
-ssh-keyscan 192.168.10.10 >> ~/.ssh/known_hosts
+ssh-keyscan 10.10.10.11 >> ~/.ssh/known_hosts
 ```
 
 ### ArgoCD — Application en estado `OutOfSync`

@@ -4,10 +4,14 @@ resource "kubernetes_ingress_v1" "argocd_ingress" {
     namespace = "argocd"
     annotations = {
       "kubernetes.io/ingress.class"                  = "nginx"
-      "nginx.ingress.kubernetes.io/backend-protocol" = "HTTP"
+      "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
     }
   }
   spec {
+    tls {
+      hosts       = ["argo.alfonso.local"]
+      secret_name = "argocd-server-tls"
+    }
     rule {
       host = "argo.alfonso.local"
       http {

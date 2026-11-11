@@ -6,7 +6,7 @@
 # Prerequisitos:
 #   - Namespace wp creado (syncOptions: CreateNamespace=true)
 #   - Secret wordpress-mysql-secrets creado por SealedSecret (02-sealed-secret.yaml)
-#   - PVC disponible (NFS del TrueNAS o StorageClass standard en Minikube)
+#   - PVC disponible mediante la StorageClass nfs-client de TrueNAS
 # =============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -29,9 +29,17 @@ spec:
     helm:
       valueFiles:
         - values.yaml
+      values: |
+        ingress:
+          annotations:
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          tls:
+            - hosts:
+                - alfonso.local
+              secretName: wordpress-tls
       parameters:
         - name: "global.storageClass"
-          value: "standard"
+          value: "nfs-client"
         - name: "global.environment"
           value: "prod"
 

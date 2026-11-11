@@ -1,0 +1,12 @@
+apiVersion: v2
+name: mysql-subchart
+description: |
+  Subchart para MySQL con mysqld-exporter sidecar para métricas Prometheus.
+  Diseñado para ser dependencia del chart wordpress-mysql.
+type: application
+version: 0.1.0
+appVersion: "8.0"
+
+maintainers:
+  - name: Alfonso
+    email: devops@example.com

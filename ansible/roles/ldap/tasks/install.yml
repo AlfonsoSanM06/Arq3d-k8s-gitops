@@ -39,7 +39,7 @@
     rule: allow
     port: "389"
     proto: tcp
-    src: "192.168.10.0/24"
+    src: "10.10.10.0/24"
     comment: "LDAP — acceso exclusivo desde VLAN 10 (clúster K8s)"
 
 - name: "LDAP INSTALL | Abrir puerto LDAPS en UFW (VLAN 10 únicamente)"
@@ -47,5 +47,5 @@
     rule: allow
     port: "636"
     proto: tcp
-    src: "192.168.10.0/24"
+    src: "10.10.10.0/24"
     comment: "LDAPS — TLS"

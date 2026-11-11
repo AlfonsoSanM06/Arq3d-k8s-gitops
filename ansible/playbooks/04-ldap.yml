@@ -1,6 +1,6 @@
 ---
 - name: "FASE 4 | OpenLDAP — Servidor de identidad ARQ3D"
-  hosts: ldap_servers
+  hosts: identity_servers
   gather_facts: true
   become: true
 
@@ -14,7 +14,7 @@
           - ldap_bind_password | length > 0
         fail_msg: >-
           Las variables 'ldap_admin_password' y 'ldap_bind_password' son obligatorias.
-          Defínelas en group_vars/all/vault.yml y cífralo con ansible-vault.
+           Defínelas en group_vars/vault.yml y cífralo con ansible-vault.
 
   roles:
     - role: hardening   # El hardening ya se ejecutó en el playbook 01, pero

@@ -1,6 +1,6 @@
 # terraform/ — Infraestructura ARQ3D sobre Proxmox VE
 
-Gestión declarativa de las VMs del proyecto mediante **Terraform + provider telmate/proxmox**.
+Gestión declarativa de las VMs del proyecto mediante **Terraform + provider bpg/proxmox**.
 
 ## Estructura
 
@@ -25,15 +25,15 @@ tf/
 
 | VM | VMID | IP | Rol |
 |---|---|---|---|
-| `k8s-master-01` | 110 | 192.168.10.10 | K8s Control Plane |
-| `k8s-worker-01` | 111 | 192.168.10.11 | K8s Worker (Web + ArgoCD) |
-| `k8s-worker-02` | 112 | 192.168.10.12 | K8s Worker (Nextcloud HA) |
-| `ldap-server`   | 120 | 192.168.10.20 | OpenLDAP Identity |
+| `k8s-master-01` | 110 | 10.10.10.11 | K8s Control Plane |
+| `k8s-worker-01` | 111 | 10.10.10.12 | K8s Worker (Web + ArgoCD) |
+| `k8s-worker-02` | 112 | 10.10.10.13 | K8s Worker (Nextcloud HA) |
+| `ldap-server`   | 120 | 10.10.10.20 | OpenLDAP Identity |
 
 ## Requisitos
 
 - Terraform >= 1.7.0
-- Provider `telmate/proxmox ~> 2.9`
+- Provider `bpg/proxmox ~> 0.107`
 - Token de API de Proxmox con permisos sobre el nodo y el storage
 
 ## Primeros pasos
