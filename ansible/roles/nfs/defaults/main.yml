@@ -1,0 +1,6 @@
+---
+nfs_server_ip: "{{ truenas_server_ip }}"
+nfs_mount_owner: arq3d
+nfs_mount_group: arq3d
+nfs_mount_mode: "0755"
+nfs_mount_options: "rw,sync,hard,rsize=131072,wsize=131072,timeo=14"

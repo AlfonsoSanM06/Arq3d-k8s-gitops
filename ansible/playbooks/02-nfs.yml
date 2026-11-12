@@ -1,9 +1,9 @@
+---
 - name: "FASE 2 | Montaje persistente NFS (TrueNAS → K8s nodes)"
-  hosts: nfs_clients
+  hosts: k8s_cluster
   gather_facts: true
   become: true
- 
+
   roles:
     - role: nfs
       tags: [nfs, storage]
- 

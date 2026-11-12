@@ -1,57 +1,118 @@
-name: Workflow-Validations
+name: Infrastructure validation
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-    paths-ignore: [ "**.md" ]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  validate-terraform:
-    name: validar Terraform
+  terraform:
+    name: Terraform validation
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ci-validation
+      AWS_SECRET_ACCESS_KEY: ci-validation
+      AWS_EC2_METADATA_DISABLED: "true"
+    strategy:
+      matrix:
+        directory:
+          - terraform-proxmox
+          - k8s-cluster/k8s_argocd/argocd_terraform
     steps:
-      - name: descargar codigo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: instalar terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        
-      - name: terraform Init
-        run: terraform init -backend=false
-        working-directory: ./terraform-proxmox
+        with:
+          terraform_version: 1.11.4
 
-      - name: terraform validate
+      - name: Format check
+        run: terraform fmt -check -recursive
+        working-directory: ${{ matrix.directory }}
+
+      - name: Init without backend
+        run: terraform init -backend=false -input=false
+        working-directory: ${{ matrix.directory }}
+
+      - name: Validate
         run: terraform validate
-        working-directory: ./terraform-proxmox
-        
-  validate-ansible:
-    name: validar ansible
-    runs-on: ubuntu-latest
+        working-directory: ${{ matrix.directory }}
 
-    steps:
-      -name: descargar codigo
-      uses: actions/checkout@v4
-
-      -name: instalar ansible-Lint
-      run: pip install ansible-Lint
-
-      -name: ansible - lint
-      run: ansible-lint ansible/**/*.yml
-
-  validate-k8s:
-    name: validar Kubernetes y Helm
+  ansible:
+    name: Ansible validation
     runs-on: ubuntu-latest
     steps:
-      - name: descargar el codigo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: instalar helm
-        uses: azure/setup-helm@v4
-        
-      - name: Helm lint
-        run: helm lint k8s-cluster/wordpress/wordpress-mysql/
-        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      
+      - name: Install Ansible tooling
+        run: python -m pip install --upgrade ansible ansible-lint yamllint
+
+      - name: Install required collections
+        run: ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: YAML lint
+        run: yamllint -d relaxed ansible
+
+      - name: Ansible lint
+        run: ansible-lint ansible
+
+  helm:
+    name: Helm validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      - name: Build chart dependencies
+        run: helm dependency build k8s-cluster/wordpress/wordpress-mysql
+
+      - name: Lint chart
+        run: helm lint k8s-cluster/wordpress/wordpress-mysql
+
+      - name: Render chart
+        run: helm template wordpress k8s-cluster/wordpress/wordpress-mysql > /tmp/wordpress.yaml
+
+  manifests:
+    name: Kubernetes manifest validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install YAML parser
+        run: python -m pip install pyyaml
+
+      - name: Validate YAML syntax
+        run: |
+          python - <<'PY'
+          import pathlib
+          import yaml
+
+          paths = list(pathlib.Path("k8s-cluster/argocd-apps").rglob("*.yaml"))
+          paths += list(pathlib.Path("k8s-cluster/k8s_argocd").rglob("*.yaml"))
+          for path in paths:
+              with path.open() as stream:
+                  list(yaml.safe_load_all(stream))
+          print("YAML syntax OK")
+          PY

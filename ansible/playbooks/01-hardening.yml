@@ -1,5 +1,6 @@
+---
 - name: "FASE 1 | Hardening de seguridad base"
-  hosts: hardened
+  hosts: managed
   gather_facts: true
   become: true
  

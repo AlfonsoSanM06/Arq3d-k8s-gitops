@@ -1,4 +1,4 @@
-
+---
 - name: "FASE 3a | K3s — Instalar nodo Master"
   hosts: k8s_masters
   gather_facts: true

@@ -8,33 +8,41 @@ system_timezone: "Europe/Madrid"
 # Hardening SSH
 ssh_port: 22
 ssh_permit_root_login: "no"
-ssh_password_authentication: "no"
+ssh_password_auth: "no"
 ssh_max_auth_tries: 3
-ssh_client_alive_interval: 300
-ssh_client_alive_count_max: 2
+ssh_login_grace_time: 30
 ssh_allowed_users:
   - arq3d
 
+fail2ban_bantime: 3600
+fail2ban_findtime: 600
+fail2ban_maxretry: 5
+
 # Firewall (ufw)
 firewall_allowed_tcp_ports:
-  - "{{ ssh_port }}"
+  - 6443
+  - 10250
+firewall_allowed_udp_ports:
+  - 8472
+firewall_allowed_source: "10.10.10.0/24"
 
 # NFS — TrueNAS (VLAN 20)
-truenas_server_ip: "192.168.20.100"          
-nfs_mount_point: "/mnt/nfs/arq3d-data"       
-nfs_export_path: "/mnt/pool/arq3d-data"     
-nfs_options: "rw,sync,hard,intr,rsize=131072,wsize=131072,timeo=14"
-nfs_owner: arq3d
-nfs_group: arq3d
+truenas_server_ip: "192.168.20.100"
+nfs_mount_point: "/mnt/nfs/arq3d-data"
+nfs_export_path: "/mnt/pool/arq3d-data"
+nfs_mount_options: "rw,sync,hard,rsize=131072,wsize=131072,timeo=14"
+nfs_mount_owner: arq3d
+nfs_mount_group: arq3d
+nfs_mount_mode: "0755"
 
 
 # K3s
 k3s_version: "v1.29.4+k3s1"
-k3s_master_ip: "192.168.10.10"
+k3s_master_ip: "10.10.10.11"
 k3s_api_port: 6443
-k3s_flannel_backend: "vxlan"             
-k3s_cluster_cidr: "10.42.0.0/16"           
-k3s_service_cidr: "10.43.0.0/16"           
+k3s_flannel_backend: "vxlan"
+k3s_cluster_cidr: "10.42.0.0/16"
+k3s_service_cidr: "10.43.0.0/16"
 
 # Directorio de configuración de K3s en los nodos
 k3s_config_dir: "/etc/rancher/k3s"
@@ -48,7 +56,8 @@ k3s_install_script_url: "https://get.k3s.io"
 # Permisos del kubeconfig generado en el master
 k3s_kubeconfig_mode: "0644"
 
-# Args extra del server (flannel backend + CIDRs ya en config.yaml; esto es para extras)
+# Args extra del server (flannel backend + CIDRs ya en config.yaml;
+# esto es para extras)
 k3s_server_extra_args: ""
 
 # Token de unión de workers — cifrado en vault.yml

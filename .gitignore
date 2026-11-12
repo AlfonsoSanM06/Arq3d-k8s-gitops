@@ -32,7 +32,7 @@ terraform.tfvars
 # para evitar conflictos entre versiones del desarrollador y CI.
 # Descomenta la línea siguiente si quieres fijarlo en el repo:
 # !.terraform.lock.hcl
-.terraform.lock.hcl
+!.terraform.lock.hcl
 
 # Logs de crash del provider.
 crash.log
@@ -90,10 +90,12 @@ values-secrets.yml
 # Paquetes Helm empaquetados (artefactos derivados del build).
 *.tgz
 
-# Helm chart dependencies descargadas (equivalente a node_modules).
-# Se regeneran con `helm dependency update`.
-charts/
-!charts/.gitkeep
+# Las dependencias remotas se regeneran con `helm dependency build`.
+# El subchart local es codigo fuente y debe versionarse.
+charts/*
+!charts/mysql-subchart/
+!charts/mysql-subchart/**
+*.tgz
 
 # Renders temporales de templates para debug.
 helm-debug-*.yaml

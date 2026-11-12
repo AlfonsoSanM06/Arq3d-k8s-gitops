@@ -1,27 +1,12 @@
 ---
-# =============================================================================
-# tasks/structure.yml — Crea el DIT (Directory Information Tree) de ARQ3D
-#
-# Árbol resultante:
-#   dc=arq3d,dc=local
-#   ├── ou=usuarios
-#   ├── ou=grupos
-#   ├── ou=servicios
-#   │   └── cn=svc-bind   (usuario de bind para Nextcloud/K8s)
-#   └── ou=grupos
-#       ├── cn=admins
-#       ├── cn=arquitectos
-#       └── cn=k8s-readonly
-# =============================================================================
-
-- name: "LDAP DIT | Crear unidades organizativas (OU)"
+# Crea de forma idempotente el DIT usado por las aplicaciones.
+- name: "LDAP DIT | Crear unidades organizativas"
   community.general.ldap_entry:
     dn: "ou={{ item }},{{ ldap_base_dn }}"
-    objectClass:
-      - organizationalUnit
+    objectClass: [organizationalUnit]
     attributes:
       ou: "{{ item }}"
-      description: "OU gestionada por Ansible — ARQ3D"
+      description: "OU gestionada por Ansible - ARQ3D"
     server_uri: "{{ ldap_server_uri }}"
     bind_dn: "cn=admin,{{ ldap_base_dn }}"
     bind_pw: "{{ ldap_admin_password }}"
@@ -32,9 +17,7 @@
 - name: "LDAP DIT | Crear grupos posixGroup"
   community.general.ldap_entry:
     dn: "cn={{ item.name }},ou=grupos,{{ ldap_base_dn }}"
-    objectClass:
-      - posixGroup
-      - top
+    objectClass: [posixGroup, top]
     attributes:
       cn: "{{ item.name }}"
       gidNumber: "{{ 5000 + loop_index }}"
@@ -48,19 +31,17 @@
     index_var: loop_index
   no_log: true
 
-- name: "LDAP DIT | Crear usuario de servicio (svc-bind)"
+- name: "LDAP DIT | Crear cuenta de servicio de bind"
   community.general.ldap_entry:
     dn: "cn={{ ldap_bind_user_cn }},ou={{ ldap_bind_user_ou }},{{ ldap_base_dn }}"
-    objectClass:
-      - inetOrgPerson
-      - simpleSecurityObject
+    objectClass: [inetOrgPerson, simpleSecurityObject]
     attributes:
       cn: "{{ ldap_bind_user_cn }}"
-      sn: "ServiceAccount"
+      sn: ServiceAccount
       userPassword: "{{ ldap_bind_password }}"
-      description: "Cuenta de bind para Nextcloud y K8s — no usar para login"
+      description: "Cuenta de bind para aplicaciones"
     server_uri: "{{ ldap_server_uri }}"
     bind_dn: "cn=admin,{{ ldap_base_dn }}"
     bind_pw: "{{ ldap_admin_password }}"
     state: present
-  no_log: true    # Nunca loguear el bind_password
+  no_log: true

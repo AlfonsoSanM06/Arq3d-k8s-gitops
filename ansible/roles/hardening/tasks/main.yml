@@ -1,8 +1,65 @@
-- name: "FASE 1 | Hardening de seguridad base"
-  hosts: hardened
-  gather_facts: true
-  become: true
- 
-  roles:
-    - role: hardening
-      tags: [hardening]
+---
+# Las tareas viven en el rol; hosts, become y tags viven en el playbook.
+- name: "Hardening | Instalar paquetes base"
+  ansible.builtin.apt:
+    name: [ufw, fail2ban]
+    state: present
+    update_cache: true
+
+- name: "Hardening | Permitir SSH antes de activar el firewall"
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+    src: "{{ firewall_allowed_source }}"
+    comment: "SSH administracion"
+
+- name: "Hardening | Permitir puertos TCP adicionales"
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+    src: "{{ firewall_allowed_source }}"
+  loop: "{{ firewall_allowed_tcp_ports | difference([ssh_port]) }}"
+
+- name: "Hardening | Permitir puertos UDP adicionales"
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: udp
+    src: "{{ firewall_allowed_source }}"
+  loop: "{{ firewall_allowed_udp_ports }}"
+
+- name: "Hardening | Aplicar politica de entrada"
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: "Hardening | Activar UFW"
+  community.general.ufw:
+    state: enabled
+
+- name: "Hardening | Aplicar configuracion segura de SSH"
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: "0600"
+    validate: "/usr/sbin/sshd -t -f %s"
+  notify: restart ssh
+
+- name: "Hardening | Configurar fail2ban"
+  ansible.builtin.template:
+    src: fail2ban_jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart fail2ban
+
+- name: "Hardening | Activar fail2ban"
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: started
+    enabled: true

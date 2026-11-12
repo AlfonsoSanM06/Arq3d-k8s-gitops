@@ -10,10 +10,10 @@ PubkeyAuthentication yes
 AuthorizedKeysFile .ssh/authorized_keys
 MaxAuthTries {{ ssh_max_auth_tries }}
 LoginGraceTime {{ ssh_login_grace_time }}
-AllowUsers {{ ssh_allowed_users }}
+AllowUsers {{ ssh_allowed_users | join(' ') }}
 
-ClientAliveInterval 300
-ClientAliveCountMax 2
+ClientAliveInterval {{ ssh_client_alive_interval | default(300) }}
+ClientAliveCountMax {{ ssh_client_alive_count_max | default(2) }}
 MaxSessions 10
 
 X11Forwarding no
