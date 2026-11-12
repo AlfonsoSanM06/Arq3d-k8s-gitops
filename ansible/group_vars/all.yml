@@ -40,9 +40,9 @@ nfs_mount_mode: "0755"
 k3s_version: "v1.29.4+k3s1"
 k3s_master_ip: "10.10.10.11"
 k3s_api_port: 6443
-k3s_flannel_backend: "vxlan"             
-k3s_cluster_cidr: "10.42.0.0/16"           
-k3s_service_cidr: "10.43.0.0/16"           
+k3s_flannel_backend: "vxlan"
+k3s_cluster_cidr: "10.42.0.0/16"
+k3s_service_cidr: "10.43.0.0/16"
 
 # Directorio de configuración de K3s en los nodos
 k3s_config_dir: "/etc/rancher/k3s"
@@ -56,7 +56,8 @@ k3s_install_script_url: "https://get.k3s.io"
 # Permisos del kubeconfig generado en el master
 k3s_kubeconfig_mode: "0644"
 
-# Args extra del server (flannel backend + CIDRs ya en config.yaml; esto es para extras)
+# Args extra del server (flannel backend + CIDRs ya en config.yaml;
+# esto es para extras)
 k3s_server_extra_args: ""
 
 # Token de unión de workers — cifrado en vault.yml
