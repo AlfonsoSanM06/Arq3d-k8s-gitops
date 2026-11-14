@@ -1,5 +1,5 @@
 ---
-# Token secreto de K3s 
+# Token secreto de K3s
 vault_k3s_token: "REEMPLAZA_CON_TOKEN_ALEATORIO_SEGURO"
 
 # Contraseña del usuario arq3d
@@ -7,4 +7,4 @@ vault_arq3d_password_hash: "REEMPLAZA_CON_HASH_SHA512"
 
 # Passwords de OpenLDAP
 ldap_admin_password: "REEMPLAZA_PASSWORD_ADMIN_LDAP"
-ldap_bind_password:  "REEMPLAZA_PASSWORD_BIND_SVC"
+ldap_bind_password: "REEMPLAZA_PASSWORD_BIND_SVC"
