@@ -62,7 +62,7 @@ jobs:
         run: ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: YAML lint
-        run: yamllint -d relaxed ansible
+        run: yamllint ansible
 
       - name: Ansible lint
         run: ansible-lint ansible

@@ -1,3 +1,4 @@
 ---
+extends: relaxed
 rules:
   line-length: disable
