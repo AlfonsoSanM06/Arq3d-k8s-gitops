@@ -15,12 +15,13 @@
   become: true
 
   pre_tasks:
-    - name: "Recuperar el node-token del master vía Ansible"
+    - name: "Recuperar el node-token del master vía Ansible"  # noqa: run-once[task]
       ansible.builtin.slurp:
         src: "{{ k3s_token_file }}"
       register: k3s_token_raw
       delegate_to: k8s-master-01
       run_once: true
+      when: inventory_hostname == (ansible_play_hosts_all | first)
 
     - name: "Decodificar y registrar el token"
       ansible.builtin.set_fact:

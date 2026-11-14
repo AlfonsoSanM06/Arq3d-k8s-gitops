@@ -1,12 +1,12 @@
 ---
-# 1. Hardening
-- import_playbook: playbooks/01-hardening.yml
+- name: Import hardening playbook
+  import_playbook: playbooks/01-hardening.yml
 
-# 2. NFS
-- import_playbook: playbooks/02-nfs.yml
+- name: Import nfs playbook
+  import_playbook: playbooks/02-nfs.yml
 
-# 3. K3s
-- import_playbook: playbooks/03-k3s.yml
+- name: Import k3s playbook
+  import_playbook: playbooks/03-k3s.yml
 
-# 4. LDAP
-- import_playbook: playbooks/04-ldap.yml
+- name: Import ldap playbook
+  import_playbook: playbooks/04-ldap.yml

@@ -9,9 +9,9 @@
 - name: "Hardening | Permitir SSH antes de activar el firewall"
   community.general.ufw:
     rule: allow
-    port: "{{ ssh_port }}"
+    port: "{{ hardening_ssh_port }}"
     proto: tcp
-    src: "{{ firewall_allowed_source }}"
+    src: "{{ hardening_firewall_allowed_source }}"
     comment: "SSH administracion"
 
 - name: "Hardening | Permitir puertos TCP adicionales"
@@ -19,16 +19,16 @@
     rule: allow
     port: "{{ item }}"
     proto: tcp
-    src: "{{ firewall_allowed_source }}"
-  loop: "{{ firewall_allowed_tcp_ports | difference([ssh_port]) }}"
+    src: "{{ hardening_firewall_allowed_source }}"
+  loop: "{{ hardening_firewall_allowed_tcp_ports | difference([hardening_ssh_port]) }}"
 
 - name: "Hardening | Permitir puertos UDP adicionales"
   community.general.ufw:
     rule: allow
     port: "{{ item }}"
     proto: udp
-    src: "{{ firewall_allowed_source }}"
-  loop: "{{ firewall_allowed_udp_ports }}"
+    src: "{{ hardening_firewall_allowed_source }}"
+  loop: "{{ hardening_firewall_allowed_udp_ports }}"
 
 - name: "Hardening | Aplicar politica de entrada"
   community.general.ufw:
@@ -47,7 +47,7 @@
     group: root
     mode: "0600"
     validate: "/usr/sbin/sshd -t -f %s"
-  notify: restart ssh
+  notify: Restart ssh
 
 - name: "Hardening | Configurar fail2ban"
   ansible.builtin.template:
@@ -56,7 +56,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify: restart fail2ban
+  notify: Restart fail2ban
 
 - name: "Hardening | Activar fail2ban"
   ansible.builtin.systemd:

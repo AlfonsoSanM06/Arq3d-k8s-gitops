@@ -19,16 +19,22 @@
     owner: root
     group: root
     mode: "0600"
-  notify: restart k3s agent
+  notify: Restart k3s agent
 
-- name: "K3s WORKER | Descargar e instalar K3s agent (versión pinada)"
+- name: "K3s WORKER | Descargar script de instalación de K3s agent"
+  ansible.builtin.get_url:
+    url: "{{ k3s_install_script_url }}"
+    dest: /tmp/k3s-install.sh
+    mode: "0755"
+    force: false
+
+- name: "K3s WORKER | Instalar K3s agent (versión pinada)"
   ansible.builtin.shell: |
-    curl -sfL {{ k3s_install_script_url }} | \
     INSTALL_K3S_VERSION={{ k3s_version }} \
     K3S_URL=https://{{ k3s_master_ip }}:6443 \
     K3S_TOKEN={{ k3s_node_token }} \
     INSTALL_K3S_EXEC="agent {{ k3s_agent_extra_args }}" \
-    sh -
+    /tmp/k3s-install.sh
   args:
     creates: /usr/local/bin/k3s
   no_log: true    # No loguear el token en el output de Ansible
@@ -44,8 +50,8 @@
   ansible.builtin.command: >
     k3s kubectl get node {{ inventory_hostname }} -o jsonpath='{.status.conditions[-1].type}'
   delegate_to: k8s-master-01
-  register: worker_status
-  until: worker_status.stdout == "Ready"
+  register: k3s_worker_status
+  until: k3s_worker_status.stdout == "Ready"
   retries: 20
   delay: 10
   changed_when: false

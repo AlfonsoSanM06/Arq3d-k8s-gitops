@@ -8,9 +8,9 @@
 
 - name: "LDAP PPOLICY | Cargar modulo ppolicy"
   ansible.builtin.command: ldapadd -Y EXTERNAL -H ldapi:/// -f /tmp/ppolicy_module.ldif
-  register: ppolicy_module
-  changed_when: ppolicy_module.rc == 0
-  failed_when: ppolicy_module.rc != 0 and 'Type or value exists' not in ppolicy_module.stderr
+  register: ldap_ppolicy_module
+  changed_when: ldap_ppolicy_module.rc == 0
+  failed_when: ldap_ppolicy_module.rc != 0 and 'Type or value exists' not in ldap_ppolicy_module.stderr
   no_log: true
 
 - name: "LDAP PPOLICY | Crear politica por defecto"

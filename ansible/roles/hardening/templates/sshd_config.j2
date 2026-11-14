@@ -1,19 +1,19 @@
 # /etc/ssh/sshd_config — Gestionado por Ansible (rol: hardening). No editar manualmente.
 
-Port {{ ssh_port }}
+Port {{ hardening_ssh_port }}
 Protocol 2
 AddressFamily inet
 
-PermitRootLogin {{ ssh_permit_root_login }}
-PasswordAuthentication {{ ssh_password_auth }}
+PermitRootLogin {{ hardening_ssh_permit_root_login }}
+PasswordAuthentication {{ hardening_ssh_password_auth }}
 PubkeyAuthentication yes
 AuthorizedKeysFile .ssh/authorized_keys
-MaxAuthTries {{ ssh_max_auth_tries }}
-LoginGraceTime {{ ssh_login_grace_time }}
-AllowUsers {{ ssh_allowed_users | join(' ') }}
+MaxAuthTries {{ hardening_ssh_max_auth_tries }}
+LoginGraceTime {{ hardening_ssh_login_grace_time }}
+AllowUsers {{ hardening_ssh_allowed_users | join(' ') }}
 
-ClientAliveInterval {{ ssh_client_alive_interval | default(300) }}
-ClientAliveCountMax {{ ssh_client_alive_count_max | default(2) }}
+ClientAliveInterval {{ hardening_ssh_client_alive_interval | default(300) }}
+ClientAliveCountMax {{ hardening_ssh_client_alive_count_max | default(2) }}
 MaxSessions 10
 
 X11Forwarding no

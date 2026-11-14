@@ -65,7 +65,8 @@ jobs:
         run: yamllint ansible
 
       - name: Ansible lint
-        run: ansible-lint ansible
+        run: ansible-lint .
+        working-directory: ansible
 
   helm:
     name: Helm validation

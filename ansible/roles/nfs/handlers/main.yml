@@ -1,4 +1,4 @@
 ---
-- name: verify nfs mount
+- name: Verify nfs mount
   ansible.builtin.command: "mountpoint -q {{ nfs_mount_point }}"
   changed_when: false
