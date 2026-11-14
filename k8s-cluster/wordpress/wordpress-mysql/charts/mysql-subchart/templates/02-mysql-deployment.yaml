@@ -1,0 +1,142 @@
+{{- /*
+  Service (Headless) + StatefulSet de MySQL con sidecar opcional
+*/ -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mysql-subchart.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "mysql-subchart.labels" . | nindent 4 }}
+    # Estas labels adicionales son las que usa el ServiceMonitor del chart padre
+    app: wordpress
+    tier: mysql
+spec:
+  clusterIP: None    # Headless: permite resolución DNS directa al pod
+  ports:
+    - port: {{ .Values.service.port }}
+      name: mysql
+      protocol: TCP
+    - port: {{ .Values.service.metricsPort }}
+      name: metrics
+      protocol: TCP
+  selector:
+    {{- include "mysql-subchart.selectorLabels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mysql-subchart.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "mysql-subchart.labels" . | nindent 4 }}
+  annotations:
+    # Fuerza rolling-update si cambia el Secret
+    checksum/secret: {{ include "mysql-subchart.secretName" . | sha256sum }}
+spec:
+  replicas: 1    # MySQL con PVC ReadWriteOnce sólo puede tener 1 réplica
+  serviceName: {{ include "mysql-subchart.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "mysql-subchart.selectorLabels" . | nindent 6 }}
+  updateStrategy:
+    type: OnDelete
+  template:
+    metadata:
+      labels:
+        {{- include "mysql-subchart.labels" . | nindent 8 }}
+        app: wordpress
+        tier: mysql
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        # ---------------------------------------------------------------
+        # Contenedor principal: MySQL
+        # ---------------------------------------------------------------
+        - name: mysql
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mysql-subchart.secretName" . }}
+                  key: root-password
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database | quote }}
+            - name: MYSQL_USER
+              value: {{ .Values.mysql.user | quote }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mysql-subchart.secretName" . }}
+                  key: password
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: mysql
+              protocol: TCP
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+        {{- if .Values.exporter.enabled }}
+        # ---------------------------------------------------------------
+        # Sidecar: mysqld-exporter para métricas Prometheus
+        # ---------------------------------------------------------------
+        - name: mysqld-exporter
+          image: "{{ .Values.exporter.image.repository }}:{{ .Values.exporter.image.tag }}"
+          imagePullPolicy: {{ .Values.exporter.image.pullPolicy }}
+          args:
+            - "--config.my-cnf=/.my.cnf"
+          ports:
+            - containerPort: {{ .Values.service.metricsPort }}
+              name: metrics
+              protocol: TCP
+          {{- with .Values.exporter.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: exporter-config
+              mountPath: /.my.cnf
+              subPath: .my.cnf
+        {{- end }}
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ include "mysql-subchart.pvcName" . }}
+        {{- if .Values.exporter.enabled }}
+        - name: exporter-config
+          secret:
+            secretName: {{ include "mysql-subchart.secretName" . }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,14 +1,14 @@
 # /etc/fail2ban/jail.local — Gestionado por Ansible (rol: hardening)
 
 [DEFAULT]
-bantime  = {{ fail2ban_bantime }}
-findtime = {{ fail2ban_findtime }}
-maxretry = {{ fail2ban_maxretry }}
+bantime  = {{ hardening_fail2ban_bantime }}
+findtime = {{ hardening_fail2ban_findtime }}
+maxretry = {{ hardening_fail2ban_maxretry }}
 backend  = systemd
 
 [sshd]
 enabled  = true
-port     = {{ ssh_port }}
+port     = {{ hardening_ssh_port }}
 filter   = sshd
 logpath  = /var/log/auth.log
-maxretry = {{ fail2ban_maxretry }}
+maxretry = {{ hardening_fail2ban_maxretry }}

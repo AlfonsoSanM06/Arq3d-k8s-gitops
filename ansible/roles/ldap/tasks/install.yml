@@ -10,16 +10,16 @@
     value: "{{ item.value }}"
     vtype: "{{ item.vtype }}"
   loop:
-    - { question: "slapd/internal/generated_adminpw",  value: "{{ ldap_admin_password }}", vtype: password }
-    - { question: "slapd/internal/adminpw",            value: "{{ ldap_admin_password }}", vtype: password }
-    - { question: "slapd/password1",                   value: "{{ ldap_admin_password }}", vtype: password }
-    - { question: "slapd/password2",                   value: "{{ ldap_admin_password }}", vtype: password }
-    - { question: "slapd/domain",                      value: "{{ ldap_domain }}",         vtype: string }
-    - { question: "shared/organization",               value: "{{ ldap_organization }}",   vtype: string }
-    - { question: "slapd/backend",                     value: "MDB",                       vtype: select }
-    - { question: "slapd/purge_database",              value: "false",                     vtype: boolean }
-    - { question: "slapd/allow_ldap_v2",               value: "false",                     vtype: boolean }
-    - { question: "slapd/no_configuration",            value: "false",                     vtype: boolean }
+    - {question: "slapd/internal/generated_adminpw", value: "{{ ldap_admin_password }}", vtype: password}
+    - {question: "slapd/internal/adminpw", value: "{{ ldap_admin_password }}", vtype: password}
+    - {question: "slapd/password1", value: "{{ ldap_admin_password }}", vtype: password}
+    - {question: "slapd/password2", value: "{{ ldap_admin_password }}", vtype: password}
+    - {question: "slapd/domain", value: "{{ ldap_domain }}", vtype: string}
+    - {question: "shared/organization", value: "{{ ldap_organization }}", vtype: string}
+    - {question: "slapd/backend", value: "MDB", vtype: select}
+    - {question: "slapd/purge_database", value: "false", vtype: boolean}
+    - {question: "slapd/allow_ldap_v2", value: "false", vtype: boolean}
+    - {question: "slapd/no_configuration", value: "false", vtype: boolean}
   no_log: true    # No exponer passwords en el output
 
 - name: "LDAP INSTALL | Instalar paquetes OpenLDAP"
@@ -39,7 +39,7 @@
     rule: allow
     port: "389"
     proto: tcp
-    src: "192.168.10.0/24"
+    src: "10.10.10.0/24"
     comment: "LDAP — acceso exclusivo desde VLAN 10 (clúster K8s)"
 
 - name: "LDAP INSTALL | Abrir puerto LDAPS en UFW (VLAN 10 únicamente)"
@@ -47,5 +47,5 @@
     rule: allow
     port: "636"
     proto: tcp
-    src: "192.168.10.0/24"
+    src: "10.10.10.0/24"
     comment: "LDAPS — TLS"

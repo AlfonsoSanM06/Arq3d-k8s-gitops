@@ -39,8 +39,8 @@ ldap_groups:
 # --- Usuario de servicio para bind (usado por Nextcloud y K8s) ---
 ldap_bind_user_cn: "svc-bind"
 ldap_bind_user_ou: "servicios"
-# ldap_bind_password → definido en group_vars/all/vault.yml (ansible-vault)
-# ldap_admin_password → definido en group_vars/all/vault.yml (ansible-vault)
+# ldap_bind_password → definido en group_vars/vault.yml (ansible-vault)
+# ldap_admin_password → definido en group_vars/vault.yml (ansible-vault)
 
 # --- Schema extra ---
 ldap_extra_schemas:

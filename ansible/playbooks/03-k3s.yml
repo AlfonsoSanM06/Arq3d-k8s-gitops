@@ -1,31 +1,32 @@
-
+---
 - name: "FASE 3a | K3s — Instalar nodo Master"
   hosts: k8s_masters
   gather_facts: true
   become: true
   serial: 1
- 
+
   roles:
     - role: k3s
       tags: [k3s, master]
- 
+
 - name: "FASE 3b | K3s — Unir Workers al clúster"
   hosts: k8s_workers
   gather_facts: true
   become: true
- 
+
   pre_tasks:
-    - name: "Recuperar el node-token del master vía Ansible"
+    - name: "Recuperar el node-token del master vía Ansible"  # noqa: run-once[task]
       ansible.builtin.slurp:
         src: "{{ k3s_token_file }}"
       register: k3s_token_raw
       delegate_to: k8s-master-01
       run_once: true
- 
+      when: inventory_hostname == (ansible_play_hosts_all | first)
+
     - name: "Decodificar y registrar el token"
       ansible.builtin.set_fact:
         k3s_node_token: "{{ k3s_token_raw.content | b64decode | trim }}"
- 
+
   roles:
     - role: k3s
       tags: [k3s, worker]

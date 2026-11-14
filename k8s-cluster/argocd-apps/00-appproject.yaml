@@ -1,43 +1,43 @@
-# =============================================================================
-# AppProject: arq3d-prod
-# Limita qué repositorios puede usar ArgoCD y en qué namespaces puede desplegar.
-# Principio de mínimo privilegio aplicado a GitOps.
-# =============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
   name: arq3d-prod
   namespace: argocd
-  # Cascade-delete: si se borra el Project, se borran todas sus Applications
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  description: "Proyecto de producción ARQ3D Systems — TFG ASIR"
-
-  # Solo se permite sincronizar desde este repositorio
+  description: "Proyecto de produccion ARQ3D Systems - TFG ASIR"
   sourceRepos:
     - https://github.com/AlfonsoSanM06/TFG-asir
-
-  # Namespaces de destino autorizados
   destinations:
     - namespace: wp
       server: https://kubernetes.default.svc
-    - namespace: nextcloud
-      server: https://kubernetes.default.svc
     - namespace: argocd
       server: https://kubernetes.default.svc
-
-  # Recursos a nivel de clúster que el proyecto puede crear
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
-    - group: "networking.k8s.io"
-      kind: IngressClass
-
-  # Recursos con namespace que el proyecto puede gestionar (todo)
   namespaceResourceWhitelist:
-    - group: "*"
-      kind: "*"
-
-  # Política de sincronización por defecto: manual (se activa por Application)
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Secret
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ServiceAccount
+    - group: ""
+      kind: PersistentVolumeClaim
+    - group: apps
+      kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor
+    - group: bitnami.com
+      kind: SealedSecret
   syncWindows: []

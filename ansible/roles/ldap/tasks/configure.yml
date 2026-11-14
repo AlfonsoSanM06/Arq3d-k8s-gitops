@@ -14,7 +14,7 @@
     bind_pw: "{{ ldap_admin_password }}"
   # Los schemas se cargan con ldapadd directamente; esta task verifica existencia
   # Se usa command como fallback idempotente con 'creates'
-  ignore_errors: true
+  failed_when: false
 
 - name: "LDAP CFG | Añadir schema cosine si no existe"
   ansible.builtin.command: >

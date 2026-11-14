@@ -18,14 +18,20 @@
     owner: root
     group: root
     mode: "0600"
-  notify: restart k3s server
+  notify: Restart k3s server
 
-- name: "K3s MASTER | Descargar e instalar K3s (versión pinada)"
+- name: "K3s MASTER | Descargar script de instalación de K3s"
+  ansible.builtin.get_url:
+    url: "{{ k3s_install_script_url }}"
+    dest: /tmp/k3s-install.sh
+    mode: "0755"
+    force: false
+
+- name: "K3s MASTER | Instalar K3s (versión pinada)"
   ansible.builtin.shell: |
-    curl -sfL {{ k3s_install_script_url }} | \
     INSTALL_K3S_VERSION={{ k3s_version }} \
     INSTALL_K3S_EXEC="server {{ k3s_server_extra_args }}" \
-    sh -
+    /tmp/k3s-install.sh
   args:
     creates: /usr/local/bin/k3s    # Idempotente: no re-instala si ya existe
   environment:
@@ -48,8 +54,8 @@
 - name: "K3s MASTER | Esperar a que el nodo master esté en Ready"
   ansible.builtin.command: >
     k3s kubectl get node {{ inventory_hostname }} -o jsonpath='{.status.conditions[-1].type}'
-  register: node_status
-  until: node_status.stdout == "Ready"
+  register: k3s_node_status
+  until: k3s_node_status.stdout == "Ready"
   retries: 20
   delay: 10
   changed_when: false

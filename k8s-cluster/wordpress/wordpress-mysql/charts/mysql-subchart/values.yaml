@@ -1,0 +1,91 @@
+# =============================================================================
+# values.yaml — Subchart MySQL
+# =============================================================================
+# Los valores bajo mysql-subchart: en el chart padre sobreescriben estos.
+# Los valores globales (global.*) los hereda automáticamente Helm del padre.
+
+# Imagen del contenedor MySQL principal
+image:
+  repository: mysql
+  tag: "8.0"
+  pullPolicy: IfNotPresent
+
+# Sidecar mysqld-exporter para métricas Prometheus
+exporter:
+  enabled: true
+  image:
+    repository: prom/mysqld-exporter
+    tag: "v0.15.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Configuración de MySQL
+existingSecret: ""
+mysql:
+  database: wordpress
+  user: wordpress
+  # NUNCA poner la password real aquí en producción.
+  # Usar Sealed Secrets, External Secrets Operator o Vault.
+  password: "changeme"
+  rootPassword: "changeme"
+
+# Almacenamiento persistente de MySQL (/var/lib/mysql)
+persistence:
+  enabled: true
+  storageClassName: ""    # Si vacío: hereda global.storageClass del padre
+  size: ""                # Si vacío: hereda global.storageSize del padre
+  accessMode: ReadWriteOnce
+
+# Service de MySQL (Headless para DNS directo al pod)
+service:
+  port: 3306
+  metricsPort: 9104
+
+# Recursos del contenedor MySQL
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Probes de MySQL
+livenessProbe:
+  exec:
+    command:
+      - bash
+      - "-c"
+      - "mysqladmin ping -u root -p${MYSQL_ROOT_PASSWORD}"
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  exec:
+    command:
+      - bash
+      - "-c"
+      - "mysql -u root -p${MYSQL_ROOT_PASSWORD} -e 'SELECT 1'"
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+nodeSelector: {}
+tolerations: []
+affinity: {}

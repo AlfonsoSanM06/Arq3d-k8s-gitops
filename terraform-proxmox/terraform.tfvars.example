@@ -1,21 +1,21 @@
 
 # terraform.tfvars.example — Copia este fichero a terraform.tfvars y rellena
 
-#  Proxmox 
-proxmox_api_url          = "https://192.168.1.:8006/api2/json"
+# Proxmox. Usa un API token dedicado, nunca root ni una contraseña.
+proxmox_api_url          = "https://192.168.1.10:8006/"
 proxmox_api_token_id     = "terraform@pam!tfg-token"
 proxmox_api_token_secret = "REEMPLAZA-CON-TU-SECRET"
 proxmox_node             = "pve"
 proxmox_tls_insecure     = false   # Pon true solo si usas cert self-signed en lab.
 
 #  Plantilla 
-vm_template_id = "1111" # VMID numérico de la plantilla Cloud-Init
+vm_template_id = 1111 # VMID numérico de la plantilla Cloud-Init
 vm_storage_pool  = "local"
 
 #  Red VLAN 10 
 network_bridge      = "vmbr0"  
 network_vlan_tag    = 10
-network_gateway     = "192.168.10.1"
+network_gateway     = "10.10.10.1"
 network_dns_servers = "8.8.8.8 1.1.1.1"
 network_cidr_prefix = 24
 
@@ -25,28 +25,28 @@ ci_ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI... REEMPLAZA-CON-TU-CLAVE-PUBLI
 
 #  k8s-master-01 
 master_vm_id   = 110
-master_ip      = "192.168.10.10"
+master_ip      = "10.10.10.11"
 master_cpu     = 2
 master_ram_mb  = 4096
 master_disk_gb = 40
 
 #  k8s-worker-01 
 worker01_vm_id   = 111
-worker01_ip      = "192.168.10.11"
+worker01_ip      = "10.10.10.12"
 worker01_cpu     = 4
 worker01_ram_mb  = 8192
 worker01_disk_gb = 40
 
 #  k8s-worker-02 
 worker02_vm_id   = 112
-worker02_ip      = "192.168.10.12"
+worker02_ip      = "10.10.10.13"
 worker02_cpu     = 4
 worker02_ram_mb  = 8192
 worker02_disk_gb = 40
 
 #  ldap-server 
 ldap_vm_id   = 120
-ldap_ip      = "192.168.10.20"
+ldap_ip      = "10.10.10.20"
 ldap_cpu     = 2
 ldap_ram_mb  = 4096
 ldap_disk_gb = 30

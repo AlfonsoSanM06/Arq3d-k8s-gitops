@@ -7,6 +7,9 @@
 values-secrets.yaml
 **/values-secrets.yaml
 
+# Los SealedSecret contienen ciphertext y deben versionarse para GitOps.
+# Nunca versionar el Secret original ni la clave privada del controlador.
+
 # Kubeconfig local
 kubeconfig
 *.kubeconfig
@@ -15,7 +18,7 @@ kubeconfig
 terraform.tfstate
 terraform.tfstate.backup
 .terraform/
-.terraform.lock.hcl
+!.terraform.lock.hcl
 
 # Clave de backup del controller Sealed Secrets
 # (exportada con: kubectl get secret -n kube-system sealed-secrets-key -o yaml)

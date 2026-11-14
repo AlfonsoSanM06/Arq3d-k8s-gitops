@@ -4,18 +4,17 @@
 # Conexión a Proxmox
 
 variable "proxmox_api_url" {
-  description = "URL completa de la API REST de Proxmox. Ej: https://192.168.1.1:8006/api2/json"
+  description = "URL base HTTPS de Proxmox. Ej: https://192.168.1.10:8006/"
   type        = string
 }
 
-variable "proxmox_user" {
-  description = "Usuario de Proxmox con permisos de administrador. Formato: user@realm"
+variable "proxmox_api_token_id" {
+  description = "Identificador del API token de Proxmox. Formato: usuario@realm!token"
   type        = string
-  default     = "root@pam"
 }
 
-variable "proxmox_password" {
-  description = "Contraseña del usuario de Proxmox."
+variable "proxmox_api_token_secret" {
+  description = "Secreto del API token de Proxmox."
   type        = string
   sensitive   = true
 }
@@ -64,7 +63,7 @@ variable "network_vlan_tag" {
 variable "network_gateway" {
   description = "Puerta de enlace de la VLAN 10."
   type        = string
-  default     = "192.168.10.1"
+  default     = "10.10.10.1"
 }
 
 variable "network_dns_servers" {
@@ -105,7 +104,7 @@ variable "master_vm_id" {
 variable "master_ip" {
   description = "IP estática del nodo master (VLAN 10)."
   type        = string
-  default     = "192.168.10.10"
+  default     = "10.10.10.11"
 }
 
 variable "master_cpu" {
@@ -133,7 +132,7 @@ variable "worker01_vm_id" {
 
 variable "worker01_ip" {
   type    = string
-  default = "192.168.10.11"
+  default = "10.10.10.12"
 }
 
 variable "worker01_cpu" {
@@ -161,7 +160,7 @@ variable "worker02_vm_id" {
 
 variable "worker02_ip" {
   type    = string
-  default = "192.168.10.12"
+  default = "10.10.10.13"
 }
 
 variable "worker02_cpu" {
@@ -188,7 +187,7 @@ variable "ldap_vm_id" {
 
 variable "ldap_ip" {
   type    = string
-  default = "192.168.10.20"
+  default = "10.10.10.20"
 }
 
 variable "ldap_cpu" {

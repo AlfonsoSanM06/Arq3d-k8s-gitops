@@ -29,9 +29,9 @@ module "k8s_master_01" {
 
   network_bridge = "vmbr0"
   network_vlan   = 10
-  ip_address     = "192.168.10.10"
+  ip_address     = "10.10.10.11"
   cidr_prefix    = 24
-  gateway        = "192.168.10.1"
+  gateway        = "10.10.10.1"
   dns_servers    = "8.8.8.8 1.1.1.1"
 
   ci_user    = "arq3d"

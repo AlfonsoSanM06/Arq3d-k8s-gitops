@@ -1,0 +1,19 @@
+{{- /*
+  PVC de MySQL para almacenamiento persistente de /var/lib/mysql
+*/ -}}
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "mysql-subchart.pvcName" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "mysql-subchart.labels" . | nindent 4 }}
+spec:
+  storageClassName: {{ include "mysql-subchart.storageClass" . }}
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ include "mysql-subchart.storageSize" . }}
+{{- end }}

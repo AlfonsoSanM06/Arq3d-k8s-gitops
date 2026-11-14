@@ -14,7 +14,7 @@ terraform.tfvars
 
 # Directorio de plugins descargados por `terraform init`.
 .terraform/
-.terraform.lock.hcl
+!.terraform.lock.hcl
 
 # Planes binarios (pueden contener datos sensibles).
 *.tfplan

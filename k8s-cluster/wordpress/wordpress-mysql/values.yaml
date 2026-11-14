@@ -7,7 +7,7 @@ global:
   # Dejar vacío para evitar ImagePullBackOff si el secret 'regcred' no existe.
   imagePullSecrets: []
   namespace: wp
-  storageClass: "standard"   # Minikube. En K3s+TrueNAS: "nfs-client"
+  storageClass: "nfs-client"
   storageSize: 1Gi
   environment: prod
   domain: alfonso.local
@@ -29,15 +29,18 @@ fullnameOverride: ""
 
 serviceAccount:
   create: true
-  automount: true
+  automount: false
   annotations: {}
   name: "wordpress-service"
 
 podAnnotations: {}
 podLabels: {}
 
-podSecurityContext: {}
-securityContext: {}
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
 
 # Servicio HTTP de WordPress
 service:
@@ -58,7 +61,7 @@ persistence:
   claimName: ""              # Si vacío se genera como <release>-wp-pvc
   storageClassName: ""       # Si vacío se usa global.storageClass
   size: ""                   # Si vacío se usa global.storageSize
-  accessMode: ReadWriteOnce
+  accessMode: ReadWriteMany
 
 # Variables de entorno del contenedor WordPress
 wordpress:
@@ -66,15 +69,19 @@ wordpress:
   dbName: wordpress
   dbUser: wordpress
   # La password se lee del Secret del subchart mysql
-  secretName: ""             # Si vacío: "<release>-mysql-subchart-secret"
+  secretName: "wordpress-mysql-secrets"
   secretKey: password
 
 # ServiceMonitor para Prometheus (monitorización de mysql-exporter)
 serviceMonitor:
-  enabled: true
+  enabled: false
   namespace: ""              # Si vacío se usa global.namespace
   releaseLabel: "alfonso-monitor"
   interval: 30s
+
+networkPolicy:
+  enabled: true
+  ingressNamespace: ingress-nginx
 
 # Recursos del contenedor WordPress
 resources:
@@ -122,6 +129,7 @@ extraVolumeMounts: []
 # Prefijo obligatorio: nombre del subchart tal y como aparece en Chart.yaml
 # -----------------------------------------------------------------------------
 mysql-subchart:
+  existingSecret: "wordpress-mysql-secrets"
   image:
     repository: mysql
     tag: "8.0"
@@ -132,7 +140,7 @@ mysql-subchart:
       repository: prom/mysqld-exporter
       tag: "v0.15.0"
       pullPolicy: IfNotPresent
-    enabled: true
+    enabled: false
 
   mysql:
     database: wordpress
