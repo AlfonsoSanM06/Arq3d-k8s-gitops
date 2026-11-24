@@ -6,7 +6,7 @@
 # Prerequisitos:
 #   - Namespace wp creado (syncOptions: CreateNamespace=true)
 #   - Secret wordpress-mysql-secrets creado por SealedSecret (02-sealed-secret.yaml)
-#   - PVC disponible mediante la StorageClass nfs-client de TrueNAS
+#   - PVC disponible mediante StorageClass local-path (sin NAS) o nfs-client
 # =============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -39,7 +39,7 @@ spec:
               secretName: wordpress-tls
       parameters:
         - name: "global.storageClass"
-          value: "nfs-client"
+          value: "local-path"
         - name: "global.environment"
           value: "prod"
 
