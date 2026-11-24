@@ -1,11 +1,11 @@
-# terraform/ — Infraestructura ARQ3D sobre Proxmox VE
+# terraform-proxmox/ — Aprovisionamiento de VMs
 
-Gestión declarativa de las VMs del proyecto mediante **Terraform + provider bpg/proxmox**.
+Gestión declarativa de las VMs del proyecto mediante **Terraform + provider bpg/proxmox**. Es la primera capa del despliegue: todo lo que hay aquí se ejecuta antes de Ansible y Kubernetes.
 
 ## Estructura
 
 ```
-tf/
+terraform-proxmox/
 ├── backend.tf                  # Configuración del backend de estado
 ├── versions.tf                 # Pin de Terraform y providers
 ├── variables.tf                # Variables públicas del root module
@@ -53,8 +53,8 @@ terraform plan
 # 5. Aplicar
 terraform apply
 
-# 6. Exportar IPs a Ansible
-terraform output -json > ../ansible/inventory_vars.json
+# 6. Revisar outputs (IPs, VMIDs)
+terraform output
 ```
 
 ## Notas de seguridad
@@ -62,3 +62,10 @@ terraform output -json > ../ansible/inventory_vars.json
 - `terraform.tfvars` está en `.gitignore` — **nunca lo commitees**.
 - Usa `TF_VAR_proxmox_api_token_secret` en lugar de escribir el secreto en fichero.
 - El state local contiene datos sensibles; considera el backend S3 (MinIO) documentado en `backend.tf`.
+
+## Enlaces
+
+- [README principal](../README.md)
+- [Ansible: configuración del SO](../ansible/README.md)
+- [Runbook de bootstrap](../docs/runbooks/bootstrap.md)
+- [Runbook de despliegue local](../docs/runbooks/local-deployment.md)
