@@ -13,8 +13,9 @@ añade valor observable y documentado.
 
 ## Fase 2: Seguridad y persistencia (en progreso)
 
-- [x] WordPress con PVC `ReadWriteMany` sobre `nfs-client`.
+- [x] WordPress con PVC sobre `local-path` para despliegue local sin NAS.
 - [x] MySQL como StatefulSet single-instance.
+- [x] Configuración condicional del rol NFS (`nfs_enabled`).
 - [x] NetworkPolicies para WordPress y MySQL.
 - [x] ServiceAccount sin automount de token.
 - [x] AppProject con whitelist explícita.

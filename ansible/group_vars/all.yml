@@ -27,6 +27,8 @@ firewall_allowed_udp_ports:
 firewall_allowed_source: "10.10.10.0/24"
 
 # NFS — TrueNAS (VLAN 20)
+# En despliegue local sin NAS se desactiva el rol NFS y se usa local-path de K3s.
+nfs_enabled: false
 truenas_server_ip: "192.168.20.100"
 nfs_mount_point: "/mnt/nfs/arq3d-data"
 nfs_export_path: "/mnt/pool/arq3d-data"

@@ -45,13 +45,15 @@ posibilidad de usar SMB en lugar de NFS.
 
 ## Decisión
 
-Para un proyecto sólido orientado a producción se recomienda **NFS externo
-compartido** como backend principal de PVCs, y **SMB de la Raspberry Pi como
-laboratorio o destino secundario de backups/archivos de WordPress**.
+Para el despliegue local actual **sin NAS** se utiliza **`local-path` de K3s**
+como backend de PVCs. Esto permite desplegar WordPress + MySQL inmediatamente
+sin depender de almacenamiento externo, aceptando que WordPress solo puede
+escalar a una réplica y que los datos viven en el disco del nodo.
 
-Si el objetivo inmediato es aprender el flujo completo sin depender de un NAS
-potente, se puede usar **`local-path` de K3s** reduciendo WordPress a una
-réplica.
+Para un proyecto sólido orientado a producción se recomienda migrar a **NFS
+externo compartido** como backend principal de PVCs, y usar **SMB de la
+Raspberry Pi como laboratorio o destino secundario de backups/archivos de
+WordPress**.
 
 ### Escenario recomendado para este proyecto
 

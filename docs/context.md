@@ -56,7 +56,9 @@ VLAN 20 (almacenamiento): 192.168.20.0/24
 ```
 
 La red de almacenamiento puede cambiar según la decisión final sobre el
-backend de PVCs. Ver [`decisions/storage-backend.md`](decisions/storage-backend.md).
+backend de PVCs. Para despliegues locales sin NAS se utiliza `local-path`
+de K3s. Ver [`decisions/storage-backend.md`](decisions/storage-backend.md) y
+[`runbooks/local-deployment.md`](runbooks/local-deployment.md).
 
 ## Dependencias externas
 
