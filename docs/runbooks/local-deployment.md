@@ -137,21 +137,6 @@ sudo qemu-system-x86_64 \
   -device virtio-net-pci,netdev=net0
 ```
 
-### Valores del instalador gráfico de Proxmox
-
-Durante la instalación desde ISO introduce:
-
-| Campo | Valor |
-|---|---|
-| Management interface | `nic0` |
-| Hostname (FQDN) | `pve-arq3d.proxmox.com` |
-| IP Address | `10.10.10.2` |
-| Netmask | `255.255.255.0` |
-| Gateway | `10.10.10.1` |
-| DNS Server | `8.8.8.8` |
-| Password | La que elijas |
-| Email | `admin@alfonso.local` |
-
 ## Paso 2: Configurar Proxmox tras la instalación
 
 Una vez Proxmox esté instalado y arrancado, ejecuta el script de
@@ -468,4 +453,3 @@ kubectl describe application wordpress-arq3d -n argocd
 - [`README.md`](../../README.md)
 - [`docs/runbooks/bootstrap.md`](bootstrap.md)
 - [`docs/decisions/storage-backend.md`](../decisions/storage-backend.md)
-- [`docs/runbooks/migrate-to-nas.md`](migrate-to-nas.md)

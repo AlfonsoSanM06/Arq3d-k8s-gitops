@@ -80,6 +80,11 @@ main() {
     exit 0
   fi
 
+  if ! command -v sshpass &>/dev/null && ! ssh -o BatchMode=yes "${PROXMOX_USER}@${PROXMOX_IP}" true &>/dev/null; then
+    log "AVISO: no se detecta acceso SSH sin contraseña ni sshpass instalado."
+    log "El script te pedirá la contraseña de root de Proxmox en cada comando."
+  fi
+
   SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
   run_ssh() {

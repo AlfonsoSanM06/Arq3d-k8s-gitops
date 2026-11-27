@@ -42,7 +42,7 @@ err() { log "ERROR: $*" >&2; exit 1; }
 
 usage() {
   cat <<EOF
-Uso: $0 {network|install|run|check|destroy|status} [opciones]
+Uso: $0 {network|install|run|destroy|status} [opciones]
 
 Subcomandos:
   network   Crear bridge y TAP en el host.
@@ -211,6 +211,26 @@ cmd_run() {
     -display gtk
 }
 
+cmd_status() {
+  log "Estado de red:"
+  ip -brief addr show "${BRIDGE_NAME}" 2>/dev/null || log "  ${BRIDGE_NAME}: no existe"
+  ip -brief link show "${TAP_NAME}" 2>/dev/null || log "  ${TAP_NAME}: no existe"
+
+  log "Estado del disco:"
+  if [[ -f "${DISK_FILE}" ]]; then
+    ls -lh "${DISK_FILE}"
+    qemu-img info "${DISK_FILE}" | head -5
+  else
+    log "  ${DISK_FILE}: no existe"
+  fi
+
+  log "Procesos QEMU:"
+  pgrep -a "${QEMU_BINARY}" || log "  No hay procesos ${QEMU_BINARY} en ejecución."
+
+  log "ISO disponible:"
+  find_iso || log "  Ninguna"
+}
+
 cmd_check() {
   log "Comprobando entorno para Proxmox en QEMU..."
   check_deps
@@ -234,26 +254,6 @@ cmd_check() {
   fi
 
   log "Todo listo para 'install' o 'run'."
-}
-
-cmd_status() {
-  log "Estado de red:"
-  ip -brief addr show "${BRIDGE_NAME}" 2>/dev/null || log "  ${BRIDGE_NAME}: no existe"
-  ip -brief link show "${TAP_NAME}" 2>/dev/null || log "  ${TAP_NAME}: no existe"
-
-  log "Estado del disco:"
-  if [[ -f "${DISK_FILE}" ]]; then
-    ls -lh "${DISK_FILE}"
-    qemu-img info "${DISK_FILE}" | head -5
-  else
-    log "  ${DISK_FILE}: no existe"
-  fi
-
-  log "Procesos QEMU:"
-  pgrep -a "${QEMU_BINARY}" || log "  No hay procesos ${QEMU_BINARY} en ejecución."
-
-  log "ISO disponible:"
-  find_iso || log "  Ninguna"
 }
 
 cmd_destroy() {
