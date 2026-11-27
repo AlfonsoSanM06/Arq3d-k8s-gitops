@@ -9,6 +9,7 @@
     name: nfs-common
     state: present
     update_cache: true
+  when: nfs_enabled | bool
 
 - name: "NFS | Crear directorio de montaje"
   ansible.builtin.file:
@@ -17,6 +18,7 @@
     owner: "{{ nfs_mount_owner }}"
     group: "{{ nfs_mount_group }}"
     mode: "{{ nfs_mount_mode }}"
+  when: nfs_enabled | bool
 
 - name: "NFS | Verificar conectividad con TrueNAS (puerto 2049)"
   ansible.builtin.wait_for:
@@ -26,6 +28,7 @@
     msg: >-
       TrueNAS ({{ nfs_server_ip }}:2049) no responde.
       Verifica ruta a VLAN 20 y que el export NFS está activo.
+  when: nfs_enabled | bool
 
 - name: "NFS | Montar share y añadir a /etc/fstab"
   ansible.posix.mount:
@@ -37,9 +40,11 @@
     dump: "0"
     passno: "0"
   notify: verify nfs mount
+  when: nfs_enabled | bool
 
 - name: "NFS | Confirmar que el mountpoint está activo"
   ansible.builtin.command: "mountpoint -q {{ nfs_mount_point }}"
   register: mp_check
   changed_when: false
   failed_when: mp_check.rc != 0
+  when: nfs_enabled | bool

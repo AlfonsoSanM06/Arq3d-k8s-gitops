@@ -7,7 +7,7 @@ global:
   # Dejar vacío para evitar ImagePullBackOff si el secret 'regcred' no existe.
   imagePullSecrets: []
   namespace: wp
-  storageClass: "nfs-client"
+  storageClass: "local-path"   # Modo local sin NAS. Para NFS/SMB: "nfs-client"
   storageSize: 1Gi
   environment: prod
   domain: alfonso.local
@@ -15,7 +15,7 @@ global:
 # -----------------------------------------------------------------------------
 # WordPress
 # -----------------------------------------------------------------------------
-replicaCount: 3
+replicaCount: 1   # 1 réplica con local-path (RWO). Para RWX con NFS: 3
 
 image:
   repository: wordpress
@@ -61,7 +61,7 @@ persistence:
   claimName: ""              # Si vacío se genera como <release>-wp-pvc
   storageClassName: ""       # Si vacío se usa global.storageClass
   size: ""                   # Si vacío se usa global.storageSize
-  accessMode: ReadWriteMany
+  accessMode: ReadWriteOnce  # local-path solo soporta RWO. Para NFS RWX: ReadWriteMany
 
 # Variables de entorno del contenedor WordPress
 wordpress:

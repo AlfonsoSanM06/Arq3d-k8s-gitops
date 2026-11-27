@@ -217,3 +217,16 @@ temp/
 dist/
 build/
 out/
+
+
+# =============================================================================
+# PROXMOX / QEMU LOCAL
+# =============================================================================
+
+# Imágenes ISO de instalación de Proxmox (grandes y descargables).
+*.iso
+
+# Directorio de trabajo del script de levantamiento local de Proxmox.
+# Contiene el disco QCOW2 y la ISO; se recrea en cada máquina.
+proxmox-tfg/
+**/proxmox-tfg/
