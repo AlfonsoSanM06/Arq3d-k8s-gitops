@@ -126,7 +126,7 @@ TFG-asir/
 Hay dos formas de desplegar el proyecto:
 
 1. **Con Proxmox real** (bare-metal o ya instalado): usa [`docs/runbooks/bootstrap.md`](docs/runbooks/bootstrap.md).
-2. **Local en tu PC sin hardware dedicado**: usa [`docs/runbooks/local-deployment.md`](docs/runbooks/local-deployment.md), que levanta Proxmox dentro de una VM QEMU mediante [`scripts/proxmox-vm.sh`](scripts/proxmox-vm.sh).
+2. **Local en tu PC sin hardware dedicado**: usa [`docs/runbooks/local-deployment.md`](docs/runbooks/local-deployment.md), que levanta Proxmox dentro de una VM QEMU mediante [`scripts/proxmox-vm.sh`](scripts/proxmox-vm.sh). Incluye `Makefile` y usa `local-path` de K3s para no depender de un NAS.
 
 El flujo general es el mismo en ambos casos:
 
@@ -185,7 +185,7 @@ El proyecto está operativo como laboratorio. Esto es lo que ya funciona y lo qu
 - [x] ArgoCD, NGINX Ingress y Sealed Secrets desplegados vía Helm.
 - [x] WordPress + MySQL gestionados por GitOps.
 - [x] CI con `terraform validate`, `ansible-lint`, `helm lint` y validación de YAML.
-- [ ] Provisionador dinámico de volúmenes (NFS/SMB).
+- [x] Provisionador dinámico de volúmenes local (`local-path` de K3s); NFS/SMB como mejora futura.
 - [ ] cert-manager para certificados TLS automáticos.
 - [ ] Stack Prometheus + Grafana + Alertmanager.
 - [ ] Backups automatizados de MySQL, WordPress y estado de ArgoCD.
